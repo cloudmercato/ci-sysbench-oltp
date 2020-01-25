@@ -1,0 +1,29 @@
+version: v1.0
+name: sysbench OLTP
+agent:
+  machine:
+    type: e1-standard-2
+
+blocks:
+  - name: e1-standard-2
+    dependencies: []
+    task:
+      secrets:
+        - name: cb-client
+      agent:
+        machine:
+          type: e1-standard-2
+          os_image: ubuntu1804
+      jobs:
+        - name: MySQL
+          commands:
+            - sem-service start mysql
+            - mysql --host=0.0.0.0 -uroot -e "CREATE DATABASE testdb"
+            - checkout
+            - git clone https://github.com/cloudspectatordevelopment/ci-base.git
+            - chmod +x *.sh
+            - ci-base/install.sh semaphore sysbench mysql
+            - ./run.sh
+          env_vars:
+            - name: SEMAPHORE_DATABASE
+              value: "mysql"
